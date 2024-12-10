@@ -1,38 +1,36 @@
-import dbClient from '../utils/db.js'; // DB Client to interact with MongoDB
-import Redis from 'ioredis'; // Redis client for checking Redis status
+import redisClient from '../utils/redis';
+import dbClient from '../utils/db';
 
-// Create a new Redis client to connect to Redis
-const redisClient = new Redis();
-
+/**
+ * Controller for the index route.
+ * @class AppController
+ * @method getStatus
+ * @method getStats
+ */
 class AppController {
-  // GET /status
-  static async getStatus(req, res) {
-    try {
-      const redisStatus = await redisClient.ping() === 'PONG'; // Check Redis connection
-      const dbStatus = dbClient.isAlive(); // Check DB connection
-
-      res.status(200).json({
-        redis: redisStatus,
-        db: dbStatus
-      });
-    } catch (err) {
-      res.status(500).json({ error: 'Error checking status' });
-    }
+  /**
+   * Method for the route GET /status.
+   * Checks the status of the API.
+   * @param {object} _req - The express request object.
+   * @param {object} res - The express response object.
+   * @returns {object} The status code 200 and the status of the API.
+   */
+  static getStatus(_req, res) {
+    res.status(200).json({ redis: redisClient.isAlive(), db: dbClient.isAlive() });
   }
 
-  // GET /stats
-  static async getStats(req, res) {
-    try {
-      const nbUsers = await dbClient.nbUsers(); // Get number of users from DB
-      const nbFiles = await dbClient.nbFiles(); // Get number of files from DB
-
-      res.status(200).json({
-        users: nbUsers,
-        files: nbFiles
+  /**
+   * Method for the route GET /stats.
+   * Checks the stats of the API.
+   * @param {object} _req - The express request object.
+   * @param {object} res - The express response object.
+   * @returns {object} The status code 200 and the stats of the API.
+   */
+  static getStats(_req, res) {
+    Promise.all([dbClient.nbUsers(), dbClient.nbFiles()])
+      .then(([usersCount, filesCount]) => {
+        res.status(200).json({ users: usersCount, files: filesCount });
       });
-    } catch (err) {
-      res.status(500).json({ error: 'Error fetching stats' });
-    }
   }
 }
 

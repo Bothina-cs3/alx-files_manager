@@ -1,11 +1,15 @@
 import express from 'express';
-import routes from './routes/index.js';
+import initializeRoutes from './routes';
 
 const app = express();
-const port = process.env.PORT || 5000;
+const PORT = process.env.PORT || 5000;
 
-app.use('/api', routes); // Load routes from index.js inside routes
+// express.json() middleware
+app.use(express.json({ limit: '200mb' }));
 
-app.listen(port, () => {
-    console.log(`Server running on port ${port}`);
+// Initialize routes
+initializeRoutes(app);
+
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
 });
